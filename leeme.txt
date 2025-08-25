@@ -10,9 +10,25 @@ Para soporte, por favor diríjase a http://www.zxprojects.com
 
 CAMBIOS
 
+25 agosto 2025
+- Reescrita toda la parte de manejo de imágenes de disco DSK. Ahora soporta DSK
+y EDSK, además de soportar geometrías de disquete de hasta 900K (como las genera-
+das por CPCDiskXP)
+- Aun así, el código sigue siendo bastante espaguetti y me da un poco de vergüenza
+enseñarlo, pero bueno, es lo que hay de momento.
+- A nivel de código fuente, he optado por usar stdint.h y cambiar todos los typedefs
+u8, u16 u32, etc, por uint8, uint16, etc.
+- Se añade una utilidad accesoria: 3edisk, para listar y obtener ficheros sueltos,
+o todos los ficheros, de una imagen de disco DSK.
+
 8 Enero 2012
 - Corregido un error que hacía que se devolviera error al detectar una imagen
 de disco duro con extensión HDF pero que en realidad debe ser manejada como RAW. StrowSaw rehusaba manejarla por esta razón.
+- Se cambia el esquema para ficheros de dispositivo fíico en Windows. En lugar
+de usar el esquema \\.\unidad: que sigue siendo válido para dispositivos de
+almacenamiento sin particiones DOS, el comando "scan" devuelve ahora el fichero
+de dispositivo correspondiente al disco físico, que es de la forma
+\\.\PhysicalDriveN con N siendo 0,1,2,etc.
 - Añadido soporte inicial para manejar discos compartidos (partición FAT +
 disco IDEPLUSDOS). Se usa como tipo de partición para IDEPLUSDOS el 7F, tal
 y como sugiere Garry Lancaster.

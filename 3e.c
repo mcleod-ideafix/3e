@@ -1,4 +1,4 @@
-#define PROGRAM_VERSION "0.5alpha"
+#define PROGRAM_VERSION "0.6"
 
 /*
 
@@ -28,6 +28,7 @@ See the install.txt file for details.
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdint.h>
 #ifndef WIN32
 #include <libgen.h>
 #include <sys/io.h>
@@ -42,15 +43,6 @@ See the install.txt file for details.
 
 #ifndef WIN32
 #define stricmp strcasecmp
-#endif
-
-typedef unsigned char u8;
-typedef unsigned short u16;
-typedef unsigned int u32;
-#ifdef WIN32
-typedef unsigned __int64 u64;
-#else
-typedef unsigned long long u64;
 #endif
 
 /*
@@ -97,36 +89,36 @@ Byte 26		Freeze flag
 */
 typedef struct stXDPB
 {
-	u16 spt;
-	u8 bsh;
-	u8 blm;
-	u8 exm;
-	u16 dsm;
-	u16 drm;
-	u8 al0;
-	u8 al1;
-	u16 cks;
-	u16 off;
-	u8 psh;
-	u8 phm;
-	u8 sideness;
-	u8 tracks_per_side;
-	u8 sectors_per_track;
-	u8 first_sector;
-	u16 sector_size;
-	u8 gap_length_rw;
-	u8 gap_length_fmt;
-	u8 mlt_track;
-	u8 freeze_flag;
+	uint16_t spt;
+	uint8_t bsh;
+	uint8_t blm;
+	uint8_t exm;
+	uint16_t dsm;
+	uint16_t drm;
+	uint8_t al0;
+	uint8_t al1;
+	uint16_t cks;
+	uint16_t off;
+	uint8_t psh;
+	uint8_t phm;
+	uint8_t sideness;
+	uint8_t tracks_per_side;
+	uint8_t sectors_per_track;
+	uint8_t first_sector;
+	uint16_t sector_size;
+	uint8_t gap_length_rw;
+	uint8_t gap_length_fmt;
+	uint8_t mlt_track;
+	uint8_t freeze_flag;
 } tXDPB;
 
 typedef struct stDiskPar
 {
-	u16 cyl;
-	u8 head;
-	u8 sect;
-	u16 sect_per_cyl;
-	u16 last_pentry;
+	uint16_t cyl;
+	uint8_t head;
+	uint8_t sect;
+	uint16_t sect_per_cyl;
+	uint16_t last_pentry;
 } tDiskPar;
 
 /*
@@ -163,16 +155,16 @@ number 	Description
 
 typedef struct stParEntry
 {
-	u8 name[17];
-	u8 type;
-	u8 drive_letter;
-	u16 cyl_start;
-	u8 head_start;
-	u16 cyl_end;
-	u8 head_end;
-	u32 last_sector;
-	u32 FirstLBA;
-	u32 LastLBA;
+	uint8_t name[17];
+	uint8_t type;
+	uint8_t drive_letter;
+	uint16_t cyl_start;
+	uint8_t head_start;
+	uint16_t cyl_end;
+	uint8_t head_end;
+	uint32_t last_sector;
+	uint32_t FirstLBA;
+	uint32_t LastLBA;
 	tXDPB xdpb; /* only for +3DOS partitions */
 	tDiskPar DiskPar; /* only for system partition */
 } tParEntry;
@@ -187,15 +179,15 @@ Directory entries - The directory is a sequence of directory entries (also calle
 typedef struct stDirEntry
 {
 	char fname[12];
-	u8 type;
-	u32 nbytes;
-	u8 read_only;
-	u8 system_file;
-	u8 archived;
-	u16 extents[256];
-	u16 extused;
-	u16 blocks[2048];
-	u16 blused;
+	uint8_t type;
+	uint32_t nbytes;
+	uint8_t read_only;
+	uint8_t system_file;
+	uint8_t archived;
+	uint16_t extents[256];
+	uint16_t extused;
+	uint16_t blocks[2048];
+	uint16_t blused;
 } tDirEntry;
 
 /*
@@ -211,13 +203,13 @@ typedef struct stDirEntry
 */
 typedef struct stP3Header
 {
-	u8 issue;
-	u8 version;
-	u32 nbytes;
-	u8 type;
-	u16 length;
-	u16 start;
-	u16 vars;
+	uint8_t issue;
+	uint8_t version;
+	uint32_t nbytes;
+	uint8_t type;
+	uint16_t length;
+	uint16_t start;
+	uint16_t vars;
 } tP3Header;
 
 
@@ -225,18 +217,18 @@ int HalvedHDF=0;  /* flag for halved sector HDF's */
 int HalvedDisks=0;  /* flag for halved sector physical disks or raw images */
 int SectorSize=512;  /* normally 512, unless halved disks are in use */
 
-u8 sep=',';   /* separator for formatted output */
-u8 ptype=0x7f; /* partition type to store an IDEPLUSDOS hard disk inside an IBM partition */
+uint8_t sep=',';   /* separator for formatted output */
+uint8_t ptype=0x7f; /* partition type to store an IDEPLUSDOS hard disk inside an IBM partition */
 
-u32 OffsHeader;  /* offset to the real start of disk image. */
-u32 StartIDEDOS;  /* offset to the beginning of the IDEDOS partition table */
+uint32_t OffsHeader;  /* offset to the real start of disk image. */
+uint32_t StartIDEDOS;  /* offset to the beginning of the IDEDOS partition table */
 
 tParEntry *ParTable=NULL;
 int num_parts=0;
 
-u8 *RawDirectory=NULL;  /* the actual directory (raw data) */
+uint8_t *RawDirectory=NULL;  /* the actual directory (raw data) */
 
-u8 *BlockMap=NULL;   /* List of blocks currently used. */
+uint8_t *BlockMap=NULL;   /* List of blocks currently used. */
 int blocks_filesystem;
 
 tDirEntry *Directory=NULL;
@@ -275,7 +267,7 @@ char *strtrim (char *s)
 }
 
 
-u32 next512mult (u32 n)
+uint32_t next512mult (uint32_t n)
 {
 	if (n%512==0)
 	    return n;
@@ -284,7 +276,7 @@ u32 next512mult (u32 n)
 } 			
 
 
-int FileExists (u8 *fname)
+int FileExists (uint8_t *fname)
 {
 	int i;
 
@@ -307,32 +299,32 @@ int FindPartition (char *part)
 
 
 /* Read/Writes LE 16 bit and 32 bit values */
-u16 read16 (u8 *p)
+uint16_t read16 (uint8_t *p)
 {
-	u16 res;
+	uint16_t res;
 
 	res=p[0] | (p[1]<<8);
 	return res;
 }
 
 
-u32 read32 (u8 *p)
+uint32_t read32 (uint8_t *p)
 {
-	u32 res;
+	uint32_t res;
 
 	res=p[0] | (p[1]<<8) | (p[2]<<16) | (p[3]<<24);
 	return res;
 }
 
 
-void write16 (u8 *p, u16 v)
+void write16 (uint8_t *p, uint16_t v)
 {
 	p[0]=v&0xFF;
 	p[1]=(v>>8)&0xFF;
 }
 
 
-void write32 (u8 *p, u32 v)
+void write32 (uint8_t *p, uint32_t v)
 {
 	p[0] = v&0xFF;
 	p[1] = (v>>8)&0xFF;
@@ -364,11 +356,11 @@ void Cleanup (void)
 #define OFFS_TO_PARTS 0x1be
 #define OFFS_TO_PTYPE 0x4
 #define OFFS_TO_PSTART 0x8
-int search_plusidedos_shared_disk (int fd, u8 *sector)
+int search_plusidedos_shared_disk (int fd, uint8_t *sector)
 {
 	int i;
 	int bc;
-	u32 lba_start;
+	uint32_t lba_start;
 	
 	/* is this a valid MBR */
 	if (sector[510]!=0x55 || sector[511]!=0xAA)
@@ -396,11 +388,11 @@ int search_plusidedos_shared_disk (int fd, u8 *sector)
 
 int get_partition_table (int fd)
 {
-	u8 *buff; /* partition table buffer. */
-	u8 sector[512];
+	uint8_t *buff; /* partition table buffer. */
+	uint8_t sector[512];
 	tParEntry temp;
-	u8 *pxdbp;
-	u8 *buffer;
+	uint8_t *pxdbp;
+	uint8_t *buffer;
 	int bc;
 	int i=0;
 	int part_max, free_part;
@@ -421,7 +413,7 @@ int get_partition_table (int fd)
 	}
 	
 	part_max=1+read16(sector+38); /* Max. number of partitions available. */
-	buff=(u8 *)malloc(next512mult(part_max*64)); /* disk buffer to read all partitions */
+	buff=(uint8_t *)malloc(next512mult(part_max*64)); /* disk buffer to read all partitions */
 	ParTable=(tParEntry *)malloc(part_max * sizeof(tParEntry));
 
 	lseek (fd, OffsHeader+StartIDEDOS, SEEK_SET);  /* reset file position to first partition. */
@@ -573,18 +565,14 @@ void show_partition_table_backend (void)
 		else
 			printf ("%c", sep);
 
-#ifdef WIN32
-		printf ("%d%c%d%c%d%c%d%c%d%c%d%c%I64u\n", 
-#else
 		printf ("%d%c%d%c%d%c%d%c%d%c%d%c%llu\n", 
-#endif		
 			ParTable[i].cyl_start, sep, 
 			ParTable[i].head_start, sep, 
 			ParTable[i].cyl_end, sep, 
 			ParTable[i].head_end, sep, 
 			ParTable[i].FirstLBA, sep, 
 			ParTable[i].LastLBA, sep, 
-			(u64)(ParTable[i].LastLBA-ParTable[i].FirstLBA+1)*SectorSize*1L);
+			(uint64_t)(ParTable[i].LastLBA-ParTable[i].FirstLBA+1)*SectorSize*1L);
 	}
 }
 
@@ -734,8 +722,8 @@ int show_partition_entry_backend (char *part)
 int get_directory (int fd, char *part)
 {
 	int i,j,bc,bl;
-	u8 *dentry,*dentr2;
-	u16 blnum;
+	uint8_t *dentry,*dentr2;
+	uint16_t blnum;
 	int np;
 
 	np=FindPartition (part);
@@ -761,7 +749,7 @@ int get_directory (int fd, char *part)
 			   SEEK_SET);
 
 	/* Read the whole directory. Each entry fills 32 bytes */
-	RawDirectory=(u8 *)malloc((ParTable[np].xdpb.drm+1)*32);
+	RawDirectory=(uint8_t *)malloc((ParTable[np].xdpb.drm+1)*32);
 	bc=read (fd, RawDirectory, (ParTable[np].xdpb.drm+1)*32);
 	if (bc<(ParTable[np].xdpb.drm+1)*32)
 	{
@@ -772,7 +760,7 @@ int get_directory (int fd, char *part)
 
 	Directory=(tDirEntry *)malloc((ParTable[np].xdpb.drm+1)*sizeof(tDirEntry));
 	blocks_filesystem=(ParTable[np].xdpb.dsm+1);
-	BlockMap=(u8 *)malloc(blocks_filesystem);
+	BlockMap=(uint8_t *)malloc(blocks_filesystem);
 	memset (BlockMap, 0, blocks_filesystem);
 	for (i=0;i<(ParTable[np].xdpb.drm+1)*32/((ParTable[np].xdpb.blm+1)*128);i++)
 		BlockMap[i]=1;  /* Mark directory blocks as used. */
@@ -842,7 +830,7 @@ int get_directory (int fd, char *part)
 int get_3dos_header (int fd, int np, int nf, tP3Header *header)
 {
 	tP3Header h;
-	u8 head[512];
+	uint8_t head[512];
 	int bc,res;
 
 	/* Seek for the beginning of directory */
@@ -886,12 +874,12 @@ void show_directory (int fd, int np)
 			continue;
 
 		printf ("%-8.8s.%-3.3s  ", Directory[i].fname, Directory[i].fname+8);
-		printf ("%-8d  ", Directory[i].nbytes);
+		printf ("%8d  ", Directory[i].nbytes);
 		printf ("%c%c%c  ", (Directory[i].read_only)?'R':' ', (Directory[i].system_file)?'S':' ', (Directory[i].archived)?'A':' ');
 		if (get_3dos_header (fd, np, i, &p3h))
 		{
 			printf ("%d.%d  ", p3h.issue, p3h.version);
-			printf ("%-8d  ", p3h.nbytes);
+			printf ("%8d  ", p3h.nbytes);
 			switch (p3h.type)
 			{
 				case 0: typ="Program"; break;
@@ -1075,7 +1063,7 @@ int get_file (int fd, char *fname, char *pathname)
 	int outfd;
 	int i,bc,bytes_written;
 	int offsblk,blsize;
-	u8 *block;
+	uint8_t *block;
 
 	/* parse filename to extract partition number, name and extension */
 	if (PC2CPM(fd, fname, &np, &nf, filename, outname)==0)
@@ -1101,7 +1089,7 @@ int get_file (int fd, char *fname, char *pathname)
 	}
 
 	blsize=(ParTable[np].xdpb.blm+1)*128;
-	block=(u8 *)malloc(blsize);
+	block=(uint8_t *)malloc(blsize);
 	offsblk=OffsHeader +
 		    ParTable[np].FirstLBA * SectorSize + 	/* Offset to the beginning of partition */
 			ParTable[np].xdpb.spt * ParTable[np].xdpb.off * 128; 	/* Offset to beginning of blocks (directory starts at block 0). */
@@ -1198,9 +1186,9 @@ int put_file (int fd, char *inname, char *fname)
 	int filesize;
 	int nextents, blocks_last_extent, records_last_lextent, bytes_last_lextent, bytes_last_record;
 	int curext, bl, maxbl, ex;
-	u16 curbl, blused, logical_extent;
-	u8 *block;
-	u8 *dirent;
+	uint16_t curbl, blused, logical_extent;
+	uint8_t *block;
+	uint8_t *dirent;
 
 	/* parse filename to extract partition number, name and extension */
 	if (PC2CPM(fd, fname, &np, &nf, filename, NULL)==0)
@@ -1224,7 +1212,7 @@ int put_file (int fd, char *inname, char *fname)
 	}
 
 	blsize=(ParTable[np].xdpb.blm+1)*128;
-	block=(u8 *)malloc(blsize);
+	block=(uint8_t *)malloc(blsize);
 	offsblk=OffsHeader +
 		    ParTable[np].FirstLBA * SectorSize + 	/* Offset to the beginning of partition */
 			ParTable[np].xdpb.spt * ParTable[np].xdpb.off * 128; 	/* Offset to beginning of blocks (directory starts at block 0). */
@@ -1349,14 +1337,14 @@ The format of the header record is as follows:
 	Bytes 23...126	- Reserved (set to 0)
 	Byte 127	- Checksum (sum of bytes 0...126 modulo 256)
 */
-int put_bin (int fd, char *inname, char *fname, u16 start)
+int put_bin (int fd, char *inname, char *fname, uint16_t start)
 {
 	char innamet[512];
-	u8 header[128];
+	uint8_t header[128];
 	int fdin, fdout;
 	int i,res,nblocks,ultbl;
-	u32 filesize;
-	u16 chks;
+	uint32_t filesize;
+	uint16_t chks;
 	char *buffer;
 
 	strcpy (innamet, tempnam(NULL,"tmp_3e_"));  /* create temporal file name which will have the original file with the header. */
@@ -1444,13 +1432,13 @@ int put_tap (int fd, char *inname, char *part)
 {
 	char innamet[512];
 	char fname[20], *outbasename;
-	u8 header[128];
+	uint8_t header[128];
 	int fdin, fdout;
 	int i,res;
-	u16 chks,sblock,datasize;
+	uint16_t chks,sblock,datasize;
 	int need_data=0;
 	int block_num=1;
-	u8 *tapblock;
+	uint8_t *tapblock;
 
 	memset (header, 0, 128);
 	fdin = open (inname, O_RDONLY | O_BINARY);
@@ -1460,14 +1448,14 @@ int put_tap (int fd, char *inname, char *part)
 		return 0;
 	}
 
-	tapblock=(u8 *)malloc(65536);
+	tapblock=(uint8_t *)malloc(65536);
 	while(1)
 	{
 		res=read (fdin, &sblock, 2);
 		if (res<2)
 			break;
 		
-		sblock = read16((u8 *)&sblock);  /* Fix endian issues */
+		sblock = read16((uint8_t *)&sblock);  /* Fix endian issues */
 		read (fdin, tapblock, sblock);
 
 		if (tapblock[0]==0)  /* standard header */
@@ -1554,11 +1542,11 @@ int put_tap (int fd, char *inname, char *part)
 }
 
 
-u16 get_hdf_parms (int fd)
+uint16_t get_hdf_parms (int fd)
 {
 	int bc;
-	u8 hdf[11];
-	u16 offs;
+	uint8_t hdf[11];
+	uint16_t offs;
 
 	bc=read (fd, hdf, 11);
 	lseek (fd, 0, SEEK_SET);
@@ -1590,7 +1578,7 @@ void scan_disks (void)
 	int i,drive_letter;
 	char fdiskname[20];
 	int fd;
-	u64 sizebytes=0;
+	uint64_t sizebytes=0;
 
 	for (drive_letter='A';drive_letter<='Z';drive_letter++)
 	{
@@ -1608,7 +1596,7 @@ void scan_disks (void)
 		{
 			for (i=0;i<num_parts;i++)
 				sizebytes+=(ParTable[i].LastLBA-ParTable[i].FirstLBA+1)*SectorSize;
-			printf ("Detected PLUSIDEDOS partition table on %s . Size: %u MB\n", fdiskname, sizebytes/1048576);
+			printf ("Detected PLUSIDEDOS partition table on %s . Size: %llu MB\n", fdiskname, sizebytes/1048576);
 		}
 		Cleanup();
 		close (fd);
@@ -1621,8 +1609,8 @@ void scan_disks_backend (void)
 	int i,drive_letter,num_disks=0;
 	char fdiskname[20];
 	int fd;
-	u64 sizebytes;
-	u64 sizes[26];
+	uint64_t sizebytes;
+	uint64_t sizes[26];
 
 	for (drive_letter='A';drive_letter<='Z';drive_letter++)
 	{
@@ -1658,167 +1646,485 @@ void scan_disks_backend (void)
 	for (drive_letter='A';drive_letter<='Z';drive_letter++)
 		if (sizes[drive_letter-'A'])
 #ifdef WIN32
-			printf ("\\\\.\\PhysicalDrive%d%c%I64u\n", drive_letter-'A', sep, sizes[drive_letter-'A']);
+			printf ("\\\\.\\PhysicalDrive%d%c%llu\n", drive_letter-'A', sep, sizes[drive_letter-'A']);
 #else
 			printf ("/dev/sd%c%c%llu\n", tolower(drive_letter), sep, sizes[drive_letter-'A']);
 #endif
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// All this part is new. I've rewritten all the DSK stuff
+/////////////////////////////////////////////////////////////////////////////
+typedef struct
+{
+  uint8_t ex;
+  uint8_t s2;
+  uint8_t rc;
+  uint8_t bl[16];    // Blocks stored in each extent (dir. entry)
+  uint8_t blused;
+} Extent;
+
+typedef struct
+{
+  uint8_t fname[12];
+  uint8_t user;
+  uint32_t nbytes;
+  Extent extents[256];   // 256 is a good top for number of dir. entries a file can use
+  uint16_t extused;
+} DiskDirEntry;
+
+typedef struct
+{
+  int ntracks;
+  int nsides;
+  int nsectors;
+  int sectorsize;
+  int blocksize;
+  int nmaxdirentries;
+  int disksize;
+  int reservedbytes;
+  int ignorefirstentry;
+  int firstsectorid;
+} DiskInfo;
+
+int  process_dsk     (FILE *fdisk, uint8_t dib[], uint8_t **bufdisk, DiskInfo *di);
+int  process_edsk    (FILE *fdisk, uint8_t dib[], uint8_t **bufdisk, DiskInfo *di);
+int  process_image   (uint8_t *disk, DiskInfo *di, int fd, char *part);
+void StringUpper     (char *s);
+void ASCIItoCPM      (char *, uint8_t *);
+void CPMtoASCII      (uint8_t *, char *);
+int  IsSameFile      (uint8_t *a, uint8_t *b);
+int  transfer_all_files (uint8_t *disk, DiskInfo *di, DiskDirEntry *entries, int nentries, int fd, char *part);
+int  get_file_dsk    (uint8_t *disk, DiskInfo *di, DiskDirEntry *entries, int nentries, char *filename);
 
 int put_dsk (int fd, char *dskfilename, char *part)
 {
-	int fddsk, fdtmp;
-	u8 *dsk, *dentry;
-	int bc,i,pd,res,bl;
-	int ntracks, tracksize;
-	tDirEntry dir[64]; /* a standard DSK has 64 directory entries. */
-	int max_dir;
-	char tmpname[256];
-	char dstname[128];
-
-	fddsk=open (dskfilename, O_BINARY | O_RDONLY);
-	if (fddsk<0)
-	{
-		fprintf (stderr, "Unable to open DSK file.\n");
-		return 0;
-	}
-
-	dsk=malloc(65536);
-	bc=read (fddsk, dsk, 256);
-	if (bc<256)
-	{
-		fprintf (stderr, "Unable to read from DSK file.\n");
-		free (dsk);
-		close (fddsk);
-		return 0;
-	}
-	if (strncmp (dsk, "MV - CPCEMU", 11))
-	{
-		fprintf (stderr, "This file is not a valid DSK file.\n");
-		free (dsk);
-		close (fddsk);
-		return 0;
-	}
-	if (dsk[0x31]!=1)
-	{
-		fprintf (stderr, "Double sided DSK files not supported.\n");
-		free (dsk);
-		close (fddsk);
-		return 0;
-	}
-
-	/* Copy the entire disk to memory. */
-	ntracks=dsk[0x30];
-	tracksize=read16(dsk+0x32)-256;  /* tracksize on DSK file includes the track info header. */
-
-	free (dsk);
-	dsk=malloc(ntracks * tracksize);
-
-	for (i=0;i<ntracks;i++)
-	{
-		lseek (fddsk, 256, SEEK_CUR);  /* jump over the track info zone. */
-		bc=read (fddsk, dsk+i*tracksize, tracksize);  /* read track */
-		if (bc<tracksize)
-		{
-			fprintf (stderr, "DSK file truncated at track %d.\n", i);
-			free (dsk);
-			close (fddsk);
-			return 0;
-		}
-	}
-	close (fddsk);
-
-	max_dir=0;
-	for (i=0;i<64;i++)
-	{
-		/* jump over free directory entries. */
-		if (dsk[i*32]==0xe5)
-			continue;
-
-		dentry=dsk+i*32; /* to easily read all fields on a entry. */
-		/* Look if this entry is already in the list. */
-		for (pd=0;pd<max_dir;pd++)
-			if (!strncmp(dir[pd].fname, dentry+1, 11))
-				break;
-
-		/* If this is a new entry... */
-		if (pd==max_dir)
-		{
-			strncpy (dir[pd].fname, dentry+1, 11);
-			dir[pd].fname[11]='\0';
-			dir[pd].blused=0;
-			dir[pd].nbytes=0;
-			for (bl=0;bl<16;bl++)
-			{
-				if (!dentry[16+bl])
-				{
-					dir[pd].nbytes = 16384*(dir[pd].nbytes/16384)+dentry[15]*128;  /* number of 128-records in last logical extent. */
-					break;
-				}
-				dir[pd].blocks[dir[pd].blused++] = dentry[16+bl];
-				dir[pd].nbytes+=1024;  /* size of a block */
-			}
-			max_dir++;
-		}
-		else
-		{
-			for (bl=0;bl<16;bl++)
-			{
-				if (!dentry[16+bl])
-				{
-					if (dir[pd].nbytes % 16384 == 0)
-						dir[pd].nbytes -= 16384;
-					else
-						dir[pd].nbytes = 16384*(dir[pd].nbytes/16384);  /* number of 128-records in last logical extent. */
-					dir[pd].nbytes+=((dentry[15]-1)*128+(dentry[13]==0?128:dentry[13]));
-					break;
-				}
-				dir[pd].blocks[dir[pd].blused++] = dentry[16+bl];
-				dir[pd].nbytes+=1024;  /* size of a block */
-			}
-		}
-	}
-
-	/* Directory read. Now, the transfer. */
-	for (i=0;i<max_dir;i++)
-	{
-		strcpy (tmpname, tempnam(NULL,"tmp_3e_"));
-		/* Copy file. */
-		fdtmp = open (tmpname, O_CREAT | O_BINARY | O_WRONLY, 0644);
-		if (fdtmp<0)
-		{
-			fprintf (stderr, "Unable to create temporary file. Please, check environment.\n");
-			free (dsk);
-			return 0;
-		}
-		for (bl=0;bl<dir[i].blused-1;bl++)
-			write (fdtmp, dsk+dir[i].blocks[bl]*1024, 1024);
-		write (fdtmp, dsk+dir[i].blocks[bl]*1024, dir[i].nbytes - 1024*(dir[i].blused-1) );  /* the last block may not be completed. */
-		close (fdtmp);
-
-		/* Prepare destination file name. */
-		sprintf (dstname, "%s:%s", part, dir[i].fname);
-		dstname[strlen(dstname)-3]='\0';
-		strtrim(dstname);
-		if (strncmp(dir[i].fname+8, "   ", 3))
-		{
-			strcat (dstname, ".");
-			strcat (dstname, dir[i].fname+8);
-			strtrim (dstname);
-		}
-
-		/* Do the transfer. */
-		res=put_file (fd, tmpname, dstname);
-		unlink (tmpname);
-		if (!res)
-		{
-			free (dsk);
-			return 0;
-		}
-	}
-	return 1;
+  FILE *fdisk;
+  uint8_t *disk = NULL;
+  int ret;
+  DiskInfo di;
+  uint8_t dib[256];
+  
+  fdisk = fopen (dskfilename, "rb");
+  if (!fdisk)
+  {
+    fprintf (stderr, "Unable to open [%s]\n", dskfilename);
+    exit(1);
+  }
+  
+  fread (dib, 1, 256, fdisk);
+  if (memcmp (dib, "EXTENDED CPC DSK", 16) == 0)
+    ret = process_edsk(fdisk, dib, &disk, &di);
+  else if (memcmp (dib, "MV - CPCEMU", 11) == 0)
+    ret = process_dsk(fdisk, dib, &disk, &di);
+  else
+    ret = fprintf (stderr, "Unable to identify disk image type. Must be CPC DSK type (normal or extended)\n");
+  fclose (fdisk);
+  
+  if (ret == 1)
+    ret = process_image (disk, &di, fd, part);
+  
+  free (disk);
+  return ret;
 }
 
+void ASCIItoCPM (char *a, uint8_t *b)
+{
+  int i,j;
+  
+  for (i=0,j=0; i<strlen(a); i++)
+  {
+    if (isalpha(a[i]))
+      b[j++] = toupper(a[i]);
+    else if (a[i] == '.')
+      for (;j<8;j++) b[j] = ' ';
+    else
+      b[j++] = a[i];
+  }
+  for (;j<11;j++) b[j] = ' ';
+  b[11] = '\0';
+}
+
+void CPMtoASCII (uint8_t *a, char *b)
+{
+  int i,j;
+  
+  for (i=0,j=0; i<8; i++)
+    if (a[i] != ' ')
+      b[j++] = a[i];
+  if (memcmp (a+8, "   ", 3) == 0)
+  {
+    b[j] = '\0';
+  }
+  else
+  {    
+    b[j++] = '.';
+    for (; i<11; i++)
+      if (a[i] != ' ')
+        b[j++] = a[i];
+    b[j] = '\0';
+  }
+}
+
+void StringUpper (char *s)
+{
+  while (*s)
+  {
+    if (isalpha(*s))
+      *s = toupper(*s);
+    s++;
+  }
+}
+
+int IsSameFile (uint8_t *a, uint8_t *b)
+{
+  int i;
+  
+  for (i=0; i<11 && (a[i]&0x7F) == (b[i]&0x7F); i++);
+  return (i == 11);
+}
+
+int process_dsk (FILE *fdisk, uint8_t dib[], uint8_t **bufdisk, DiskInfo *di)
+{
+  int ntracks = dib[0x30];
+  int nsides = dib[0x31];
+  int tracksize = dib[0x33]*256+dib[0x32];
+  size_t location = 0x100;
+  uint8_t *buftrack = NULL;
+  int tambufdisk = 0;
+  size_t indexbufdisk = 0;
+  
+  *bufdisk = NULL;  
+  di->ntracks = ntracks;
+  di->nsides = nsides;
+  
+  for (int track=0; track<ntracks; track++)
+  {
+    for (int side=0; side<nsides; side++)
+    {
+      int nlogicaltrack = track*nsides + side;
+      if (nlogicaltrack > 0)
+        location += tracksize;
+      
+      buftrack = malloc (tracksize * sizeof *buftrack);
+      if (!buftrack)
+      {
+        fprintf (stderr, "Unable to allocate %d of bytes for logical track %d\n", tracksize, nlogicaltrack);
+        return 0;
+      }
+      
+      fseek (fdisk, location, SEEK_SET);  // go to that track on disk
+      int bread = fread (buftrack, 1, tracksize, fdisk);
+      if (bread < tracksize)
+      {
+        fprintf (stderr, "Unable to read track %d:%d\n", track, side);
+        return 0;
+      }
+      
+      //fprintf (stderr, "Reading track %d:%d\n", buftrack[0x10], buftrack[0x11]);
+      
+      int nsectors = buftrack[0x15];
+      int sizesector = 128*(1<<buftrack[0x14]);
+      
+      di->nsectors = nsectors;   // assume all tracks have the same number of sectors...
+      tambufdisk += nsectors * sizesector;
+      *bufdisk = realloc (*bufdisk, tambufdisk);
+      if (!*bufdisk)
+      {
+        fprintf (stderr, "Unable to allocate %d bytes for disk buffer\n", tambufdisk);
+        free (buftrack);
+        return 0;
+      }
+      
+      for (int sector = 0; sector<nsectors; sector++)
+      {
+        int is;
+        for (is=0; is<nsectors; is++)
+          if ((buftrack[0x18+is*8+0x2] & 0x3F) == sector+1)   // masqueamos sectores tipo C1,C2... o 41,42... en +3/PCW
+            break;
+        if (is == nsectors)
+        {
+          fprintf (stderr, "Sector %d:%d:%d not found (missing mark ID on sector)\n", track, side, sector+1);
+          free (*bufdisk);
+          free (buftrack);
+          return 0;
+        }
+        memcpy (*bufdisk+indexbufdisk, buftrack+0x100+sizesector*is, sizesector);
+        indexbufdisk += sizesector;        
+        if (track == 0 && side == 0 && sector == 0)
+          di->firstsectorid = buftrack[0x18+is*8+0x2];  // guardamos ID del primer sector en pista 0, cara 0, para identificar tipo de disco
+      }
+      
+      free (buftrack);
+    }
+  }
+  di->disksize = tambufdisk;
+  return 1;
+}
+
+int process_edsk (FILE *fdisk, uint8_t dib[], uint8_t **bufdisk, DiskInfo *di)
+{
+  int ntracks = dib[0x30];
+  int nsides = dib[0x31];
+  uint8_t *tst = dib+0x34;
+  size_t location = 0x100;
+  uint8_t *buftrack = NULL;
+  int tambufdisk = 0;
+  size_t indexbufdisk = 0;
+  
+  *bufdisk = NULL;  
+  di->ntracks = ntracks;
+  di->nsides = nsides;
+  
+  for (int track=0; track<ntracks; track++)
+  {
+    for (int side=0; side<nsides; side++)
+    {
+      int nlogicaltrack = track*nsides + side;
+      if (nlogicaltrack > 0)
+        location += tst[nlogicaltrack-1]*256;
+      if (tst[nlogicaltrack] == 0)
+        continue;   // a track size of 0 means no track info block for this track
+      
+      buftrack = malloc (tst[nlogicaltrack]*256 * sizeof *buftrack);
+      if (!buftrack)
+      {
+        fprintf (stderr, "Unable to allocate %d of bytes for logical track %d\n", tst[nlogicaltrack]*256, nlogicaltrack);
+        return 0;
+      }
+      
+      fseek (fdisk, location, SEEK_SET);  // go to that track on disk
+      int bread = fread (buftrack, 1, tst[nlogicaltrack]*256, fdisk);
+      if (bread < tst[nlogicaltrack]*256)
+      {
+        fprintf (stderr, "Unable to read track %d:%d\n", track, side);
+        return 0;
+      }
+      
+      //fprintf (stderr, "Reading track %d:%d\n", buftrack[0x10], buftrack[0x11]);
+      
+      int nsectors = buftrack[0x15];
+      int sizesector = 128*(1<<buftrack[0x14]);
+      
+      di->nsectors = nsectors;   // assume all tracks have the same number of sectors...
+      tambufdisk += nsectors * sizesector;
+      *bufdisk = realloc (*bufdisk, tambufdisk);
+      if (!*bufdisk)
+      {
+        fprintf (stderr, "Unable to allocate %d bytes for disk buffer\n", tambufdisk);
+        free (buftrack);
+        return 0;
+      }
+      
+      for (int sector = 0; sector<nsectors; sector++)
+      {
+        int is;
+        for (is=0; is<nsectors; is++)
+          if ((buftrack[0x18+is*8+0x2] & 0x3F) == sector+1)   // masqueamos sectores tipo C1,C2... o 41,42... en +3/PCW
+            break;
+        if (is == nsectors)
+        {
+          fprintf (stderr, "Sector %d:%d:%d not found (missing mark ID on sector)\n", track, side, sector+1);
+          free (*bufdisk);
+          free (buftrack);
+          return 0;
+        }
+        memcpy (*bufdisk+indexbufdisk, buftrack+0x100+sizesector*is, sizesector);
+        indexbufdisk += sizesector;        
+        if (track == 0 && side == 0 && sector == 0)
+          di->firstsectorid = buftrack[0x18+is*8+0x2];  // guardamos ID del primer sector en pista 0, cara 0, para identificar tipo de disco
+      }
+      
+      free (buftrack);
+    }
+  }
+  di->disksize = tambufdisk;
+  return 1;
+}
+
+int process_image (uint8_t *disk, DiskInfo *di, int fd, char *part)
+{
+  DiskDirEntry *entries = NULL;
+  int nentries = 0;
+  int i, j, b;
+  
+  if (disk[0] == 0 && disk[1] == di->nsides-1 && disk[2] == di->ntracks && disk[3] == di->nsectors)    
+  {
+    //byte0: formato (0=PCW/+3)
+    //byte1: sidedness
+    //byte2: pistas/side
+    //byte3: sectores/pista
+    //byte4: psh = log2(tam_sector) - 7   (2 ? 512 B)
+    //byte5: off = nº de pistas reservadas (system tracks)
+    //byte6: bsh (? BLS = 128·2^bsh)
+    //byte7: nº de bloques de directorio
+    //byte8: GAP r/w
+    //byte9: GAP format
+    //bytes10–14: 0
+    //byte15: checksum “fiddle” (boot)
+    
+    di->blocksize = 128*(1<<disk[6]);
+    di->nmaxdirentries = disk[7] * di->blocksize / 32;
+    di->sectorsize = 128*(1<<disk[4]);
+    di->reservedbytes = disk[5] * di->nsectors * di->sectorsize;    
+    if (di->reservedbytes == 0)
+      di->ignorefirstentry = 1;
+    else
+      di->ignorefirstentry = 0;
+  }
+  else
+  {
+    if ((di->firstsectorid & 0xC0) == 0x40)
+    {
+      di->blocksize = 1024;
+      di->nmaxdirentries = 64;
+      di->sectorsize = 512;
+      di->reservedbytes = 2 * di->nsectors * di->sectorsize;
+      di->ignorefirstentry = 0;
+    }
+    else if ((di->firstsectorid & 0xC0) == 0xC0)
+    {
+      di->blocksize = 1024;
+      di->nmaxdirentries = 64;
+      di->sectorsize = 512;
+      di->reservedbytes = 0;
+      di->ignorefirstentry = 0;
+    }
+    else
+    {
+      di->blocksize = 1024;
+      di->nmaxdirentries = 64;
+      di->sectorsize = 512;
+      di->reservedbytes = 1 * di->nsides * di->nsectors * di->sectorsize;
+      di->ignorefirstentry = 0;
+    }    
+  }
+  
+  // List of files will be in here
+  entries = NULL;
+  nentries = 0;
+  int entrybeenprocessed = 1;
+  
+  uint8_t *entry = disk + di->reservedbytes;
+  
+  if (di->ignorefirstentry)  // mark first directory entry as deleted if first entry should be ignored
+    entry[0] = 0xE5;
+  
+  int exm = di->blocksize/1024-1;
+  
+  while (entrybeenprocessed)  // while there is still dir.entries to process
+  {
+    entry = disk + di->reservedbytes - 32;  // point 32 bytes before the first entry
+    for (i=0; i<di->nmaxdirentries; i++)    // for each dir.entry, check if it's already in the list, or is a new file to the list
+    {
+      entry += 32;  // next dir.entry (put here so continue will reach it)
+      entrybeenprocessed = 0;
+      if (entry[0] == 0xE5)
+        continue;
+      
+      entrybeenprocessed = 1;  // if we reach here, there is an entry to process
+      for (j=0; j<nentries; j++)
+        if (IsSameFile (entry+1, entries[j].fname))
+          break;
+      if (j == nentries)  // Fichero nuevo
+      {
+        nentries++;
+        entries = realloc (entries, nentries * sizeof *entries);
+        memcpy (entries[j].fname, entry+1, 11);
+        entries[j].fname[11] = '\0';
+        entries[j].user = entry[0];
+        entries[j].extused = 0;
+        entries[j].nbytes = 0;        
+      }
+      entry[0] = 0xE5;  // borramos entrada ya procesada
+      int iext = entry[14]*32 + (entry[12] & 0x1F);  // para ponerlas ya en orden.   //entries[j].extused;
+      if (iext >= entries[j].extused)
+        entries[j].extused = iext + 1;
+      entries[j].extents[iext].ex = entry[12];
+      entries[j].extents[iext].s2 = entry[14];
+      entries[j].extents[iext].rc = entry[15];
+      entries[j].extents[iext].blused = 0;
+      for (b=0; b<16 && entry[16+b] != 0; b++)
+      {
+        entries[j].extents[iext].bl[b] = entry[16+b];
+        entries[j].extents[iext].blused++;
+      }  
+      int regsinentry = (entries[j].extents[iext].rc & 0x7F) + 128 * ( (entries[j].extents[iext].ex & exm) + (entries[j].extents[iext].rc >> 7) );
+      entries[j].nbytes += regsinentry * 128;      
+    }  
+  }
+  
+  int ret = transfer_all_files (disk, di, entries, nentries, fd, part);
+  free (entries);
+  
+  return ret;
+}
+
+int transfer_all_files (uint8_t *disk, DiskInfo *di, DiskDirEntry *entries, int nentries, int fd, char *part)
+{
+  int ret;
+  char fname[13];
+  char dstname[1024];
+  
+  for (int i=0; i<nentries; i++)
+  {
+    CPMtoASCII (entries[i].fname, fname);
+    ret = get_file_dsk (disk, di, entries, nentries, fname);
+    if (ret == 0)
+      return 0;
+    sprintf (dstname, "%s:%s", part, fname);
+    ret = put_file (fd, fname, dstname);
+    unlink (fname);
+    if (ret == 0)
+      return 0;
+  }  
+  return ret;
+}
+
+int get_file_dsk (uint8_t *disk, DiskInfo *di, DiskDirEntry *entries, int nentries, char *filename)
+{
+  uint8_t fnamecm[12];  // file name from command line in 8+3 format
+  int nbytes = 0;
+  int i,j,b;
+  
+  ASCIItoCPM (filename, fnamecm);
+  StringUpper (filename);
+  
+  for (i=0; i<nentries; i++)
+  {
+    if (IsSameFile (fnamecm, entries[i].fname))
+    {
+      FILE *fout;
+      
+      fout = fopen (filename, "wb");
+      if (!fout)
+      {
+        fprintf (stderr, "File [%s] couldn't be created.\n", filename);
+        return 0;
+      }
+      nbytes = entries[i].nbytes;
+      for (j=0; j<entries[i].extused; j++)
+      {
+        for (b=0; b<entries[i].extents[j].blused; b++)
+        {
+          if (nbytes >= di->blocksize)
+          {
+            fwrite (disk + di->reservedbytes + entries[i].extents[j].bl[b] * di->blocksize, 1, di->blocksize, fout);
+            nbytes -= di->blocksize;
+          }
+          else
+          {
+            fwrite (disk + di->reservedbytes + entries[i].extents[j].bl[b] * di->blocksize, 1, nbytes, fout);              
+          }            
+        }
+      }
+      fclose (fout);
+      return 1;
+    }
+  }
+  fprintf (stderr, "File [%s] not found\n", filename);
+  return 0;
+}
 
 void usage (void)
 {

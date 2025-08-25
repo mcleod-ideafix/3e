@@ -1,11 +1,22 @@
 '3e': Utility for handing files in a memory card formatted for a +3E
 enhanced Spectrum. Version 0.5alpha.
 
-(C)2009-2012 Miguel Angel Rodriguez Jodar (mcleod_ideafix). GPL Licensed.
+(C)2009-2025 Miguel Angel Rodriguez Jodar (mcleod_ideafix). GPL Licensed.
 For support, please check http://www.zxprojects.com
 
 
 CHANGELOG
+
+August, 25, 2025
+- The section that is in charge of managing DSK files has been rewritten from scratch.
+Now it fully supports DSK and EDSK formats. It even supports extended geometries,
+such as the ones created by CPCDiskXP.
+- Yet, the source code is sort of spaguetti code in many places, and I'm a bit
+embarrased about that.
+- Source code changes: all references to u8, u16, etc, have been replaced by
+proper stdint.h types: uint8_t, uint16_t, etc.
+- An addition side utilityt has been added: 3edisk, to list and get files
+from DSK files.
 
 January, 14, 2012
 - Added a small utility, hdf2hdf256 to assist converting 8-bit HDF files
